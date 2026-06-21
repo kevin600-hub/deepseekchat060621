@@ -2,50 +2,87 @@
 
 import { useState, useRef, useEffect } from 'react';
 
+const API_URL = 'https://deepseekchat-backend260621.onrender.com/chat';
+
+type Message = {
+  role: string;
+  content: string;
+};
+
 export default function Home() {
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, loading]);
 
   const sendMessage = async () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || loading) return;
+
+    const userMessage: Message = { role: 'user', content: text };
+    const newMessages = [...messages, userMessage];
 
     setInput('');
+    setMessages(newMessages);
     setLoading(true);
-    
-    // 添加用户消息
-    setMessages(prev => [...prev, { role: 'user', content: text }]);
 
-    // 模拟 AI 回复（等后端对接好了再替换）
-    setTimeout(() => {
-      setMessages(prev => [
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: newMessages,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: `❌ 后端错误：${data.detail || data.error || '请求失败'}`,
+          },
+        ]);
+        return;
+      }
+
+      setMessages((prev) => [
         ...prev,
-        { 
-          role: 'assistant', 
-          content: '这是一个模拟回复。等后端 FastAPI 部署好后，就会真的调用 DeepSeek API 了！ 🚀' 
-        }
+        {
+          role: 'assistant',
+          content: data.reply || '⚠️ 后端没有返回内容',
+        },
       ]);
+    } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: `❌ 请求失败：${err.message}`,
+        },
+      ]);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100vh', 
-      background: '#0d1117', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      background: '#0d1117',
       color: '#e6edf3',
       fontFamily: "'Segoe UI', sans-serif"
     }}>
-      {/* ====== 头部 ====== */}
       <div style={{
         background: '#161b22',
         padding: '16px 24px',
@@ -62,24 +99,27 @@ export default function Home() {
             padding: '2px 10px',
             borderRadius: '12px',
             fontSize: '11px'
-          }}>🚀 DeepSeek</span>
+          }}>
+            🚀 DeepSeek
+          </span>
         </div>
+
         <span style={{
           fontSize: '12px',
           color: '#8b949e',
           background: '#21262d',
           padding: '4px 12px',
           borderRadius: '20px'
-        }}>deepseek-chat</span>
+        }}>
+          deepseek-chat
+        </span>
       </div>
 
-      {/* ====== 消息区域 ====== */}
       <div style={{
         flex: 1,
         overflowY: 'auto',
         padding: '24px'
       }}>
-        {/* 系统提示 */}
         <div style={{
           color: '#8b949e',
           fontStyle: 'italic',
@@ -89,6 +129,7 @@ export default function Home() {
         }}>
           💡 输入你的编程问题，DeepSeek 会帮你解答
         </div>
+
         <div style={{
           color: '#8b949e',
           fontStyle: 'italic',
@@ -99,7 +140,6 @@ export default function Home() {
           📌 支持: 代码编写、调试、解释、算法设计、系统重构等
         </div>
 
-        {/* 消息列表 */}
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -111,25 +151,23 @@ export default function Home() {
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
               lineHeight: '1.6',
-              ...(msg.role === 'user' 
-                ? { 
-                    background: '#1f6feb', 
-                    color: 'white', 
-                    marginLeft: 'auto' 
+              ...(msg.role === 'user'
+                ? {
+                    background: '#1f6feb',
+                    color: 'white',
+                    marginLeft: 'auto'
                   }
-                : { 
-                    background: '#21262d', 
-                    color: '#e6edf3', 
-                    border: '1px solid #30363d' 
-                  }
-              )
+                : {
+                    background: '#21262d',
+                    color: '#e6edf3',
+                    border: '1px solid #30363d'
+                  })
             }}
           >
             {msg.content}
           </div>
         ))}
 
-        {/* 加载状态 */}
         {loading && (
           <div style={{
             maxWidth: '80%',
@@ -145,11 +183,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* 滚动锚点 */}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ====== 输入区域 ====== */}
       <div style={{
         padding: '16px 24px',
         borderTop: '1px solid #30363d',
@@ -183,12 +219,13 @@ export default function Home() {
           }}
           disabled={loading}
         />
+
         <button
           onClick={sendMessage}
           disabled={loading}
           style={{
             padding: '12px 32px',
-            background: loading ? '#4d6bfe' : '#4d6bfe',
+            background: '#4d6bfe',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -196,12 +233,6 @@ export default function Home() {
             cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '14px',
             opacity: loading ? 0.5 : 1
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) e.currentTarget.style.background = '#6b85ff';
-          }}
-          onMouseLeave={(e) => {
-            if (!loading) e.currentTarget.style.background = '#4d6bfe';
           }}
         >
           {loading ? '发送中...' : '发送'}
