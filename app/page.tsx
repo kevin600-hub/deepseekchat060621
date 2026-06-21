@@ -27,7 +27,7 @@ export default function Home() {
     const newMessages = [...messages, userMessage];
 
     setInput('');
-    setMessages(newMessages);
+    setMessages([...newMessages, { role: 'assistant', content: '' }]);
     setLoading(true);
 
     try {
@@ -41,34 +41,41 @@ export default function Home() {
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: `❌ 后端错误：${data.detail || data.error || '请求失败'}`,
-          },
-        ]);
-        return;
+      if (!res.ok || !res.body) {
+        const errorText = await res.text();
+        throw new Error(errorText || '请求失败');
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: data.reply || '⚠️ 后端没有返回内容',
-        },
-      ]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+
+      let aiText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        aiText += chunk;
+
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content: aiText,
+          };
+          return updated;
+        });
+      }
     } catch (err: any) {
-      setMessages((prev) => [
-        ...prev,
-        {
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
           role: 'assistant',
           content: `❌ 请求失败：${err.message}`,
-        },
-      ]);
+        };
+        return updated;
+      });
     } finally {
       setLoading(false);
     }
@@ -164,24 +171,9 @@ export default function Home() {
                   })
             }}
           >
-            {msg.content}
+            {msg.content || '⏳ 思考中...'}
           </div>
         ))}
-
-        {loading && (
-          <div style={{
-            maxWidth: '80%',
-            marginBottom: '16px',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            background: '#21262d',
-            color: '#8b949e',
-            border: '1px solid #30363d',
-            fontStyle: 'italic'
-          }}>
-            ⏳ 思考中...
-          </div>
-        )}
 
         <div ref={messagesEndRef} />
       </div>
@@ -235,7 +227,7 @@ export default function Home() {
             opacity: loading ? 0.5 : 1
           }}
         >
-          {loading ? '发送中...' : '发送'}
+          {loading ? '生成中...' : '发送'}
         </button>
       </div>
     </div>
