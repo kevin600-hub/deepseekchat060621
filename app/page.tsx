@@ -70,10 +70,12 @@ export default function Home() {
     } catch (err: any) {
       setMessages((prev) => {
         const updated = [...prev];
+
         updated[updated.length - 1] = {
           role: 'assistant',
           content: `❌ 请求失败：${err.message}`,
         };
+
         return updated;
       });
     } finally {
@@ -82,68 +84,82 @@ export default function Home() {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      background: '#0d1117',
-      color: '#e6edf3',
-      fontFamily: "'Segoe UI', sans-serif"
-    }}>
-      <div style={{
-        background: '#161b22',
-        padding: '16px 24px',
-        borderBottom: '1px solid #30363d',
+    <div
+      style={{
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexShrink: 0
-      }}>
+        flexDirection: 'column',
+        height: '100vh',
+        background: '#0d1117',
+        color: '#e6edf3',
+        fontFamily: "'Segoe UI', sans-serif",
+      }}
+    >
+      <div
+        style={{
+          background: '#161b22',
+          padding: '16px 24px',
+          borderBottom: '1px solid #30363d',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <h1 style={{ fontSize: '18px', margin: 0 }}>🤖 DeepSeek 编程助手</h1>
-          <span style={{
-            background: '#4d6bfe',
-            padding: '2px 10px',
-            borderRadius: '12px',
-            fontSize: '11px'
-          }}>
+          <span
+            style={{
+              background: '#4d6bfe',
+              padding: '2px 10px',
+              borderRadius: '12px',
+              fontSize: '11px',
+            }}
+          >
             🚀 DeepSeek
           </span>
         </div>
 
-        <span style={{
-          fontSize: '12px',
-          color: '#8b949e',
-          background: '#21262d',
-          padding: '4px 12px',
-          borderRadius: '20px'
-        }}>
+        <span
+          style={{
+            fontSize: '12px',
+            color: '#8b949e',
+            background: '#21262d',
+            padding: '4px 12px',
+            borderRadius: '20px',
+          }}
+        >
           deepseek-chat
         </span>
       </div>
 
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '24px'
-      }}>
-        <div style={{
-          color: '#8b949e',
-          fontStyle: 'italic',
-          padding: '8px',
-          borderBottom: '1px solid #30363d',
-          marginBottom: '8px'
-        }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '24px',
+        }}
+      >
+        <div
+          style={{
+            color: '#8b949e',
+            fontStyle: 'italic',
+            padding: '8px',
+            borderBottom: '1px solid #30363d',
+            marginBottom: '8px',
+          }}
+        >
           💡 输入你的编程问题，DeepSeek 会帮你解答
         </div>
 
-        <div style={{
-          color: '#8b949e',
-          fontStyle: 'italic',
-          padding: '8px',
-          borderBottom: '1px solid #30363d',
-          marginBottom: '16px'
-        }}>
+        <div
+          style={{
+            color: '#8b949e',
+            fontStyle: 'italic',
+            padding: '8px',
+            borderBottom: '1px solid #30363d',
+            marginBottom: '16px',
+          }}
+        >
           📌 支持: 代码编写、调试、解释、算法设计、系统重构等
         </div>
 
@@ -162,13 +178,14 @@ export default function Home() {
                 ? {
                     background: '#1f6feb',
                     color: 'white',
-                    marginLeft: 'auto'
+                    marginLeft: 'auto',
                   }
                 : {
                     background: '#21262d',
-                    color: '#e6edf3',
-                    border: '1px solid #30363d'
-                  })
+                    color: msg.content ? '#e6edf3' : '#8b949e',
+                    border: '1px solid #30363d',
+                    fontStyle: msg.content ? 'normal' : 'italic',
+                  }),
             }}
           >
             {msg.content || '⏳ 思考中...'}
@@ -178,14 +195,16 @@ export default function Home() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div style={{
-        padding: '16px 24px',
-        borderTop: '1px solid #30363d',
-        display: 'flex',
-        gap: '12px',
-        background: '#0d1117',
-        flexShrink: 0
-      }}>
+      <div
+        style={{
+          padding: '16px 24px',
+          borderTop: '1px solid #30363d',
+          display: 'flex',
+          gap: '12px',
+          background: '#0d1117',
+          flexShrink: 0,
+        }}
+      >
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -207,7 +226,7 @@ export default function Home() {
             resize: 'none',
             fontSize: '14px',
             outline: 'none',
-            fontFamily: 'inherit'
+            fontFamily: 'inherit',
           }}
           disabled={loading}
         />
@@ -224,7 +243,7 @@ export default function Home() {
             fontWeight: 600,
             cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '14px',
-            opacity: loading ? 0.5 : 1
+            opacity: loading ? 0.5 : 1,
           }}
         >
           {loading ? '生成中...' : '发送'}
