@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-const API_URL = 'https://deepseekchat-backend260621.onrender.com/assistant/pump/chat';
+const API_URL = 'https://deepseekchat-backend260621.onrender.com/assistant/chat';
 const FRONTEND_TOKEN = 'ai_frontend_2026';
 
 type Message = {
