@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-const API_URL = 'https://deepseekchat-backend260621.onrender.com/chat';
+const API_URL = 'https://deepseekchat-backend260621.onrender.com/assistant/pump/chat';
+const FRONTEND_TOKEN = 'ai_frontend_2026';
 
 type Message = {
   role: string;
@@ -35,6 +36,7 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Frontend-Token': FRONTEND_TOKEN,
         },
         body: JSON.stringify({
           messages: newMessages,
